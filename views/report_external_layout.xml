@@ -1,0 +1,64 @@
+<odoo>
+    <template id="custom_external_layout" inherit_id="web.external_layout_standard">
+        <xpath expr="//div[@class='header']" position="replace">
+            <div t-attf-class="header o_company_#{company.id}_layout" t-att-style="report_header_style">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-3 mb4">
+                            <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="max-height: 45px;" alt="Logo" />
+                        </div>
+                    </div>
+                    <!-- First Row: Comprehensive Company Information -->
+                    <div class="row company-info">
+                        <div class="col-6">
+                            <h3 t-field="company.name" class="company-name" />
+                            <p style="margin-bottom: 2px; font-size: 14px; font-style: italic;">
+                                House of Software Solutions
+                            </p>
+                            <div class="company-contact">
+                                <span t-field="company.street" />
+                                ,
+                                <span t-field="company.city" />
+                            </div>
+                            <div class="company-address">
+                                <span>
+                                    P.O. Box 55480 00200 Nairobi.
+                                </span>
+                            </div>
+                            <div class="company-communication">
+                                <strong>Email:</strong>
+                                <span t-field="company.email" />
+                                |
+                                <span t-field="company.website" />
+                            </div>
+                            <div class="company-contact">
+                                <strong>Phone:</strong>
+                                <span t-field="company.phone" />
+                            </div>
+                            <div>
+                                <strong>VAT:</strong>
+                                <span>178889937</span>
+                            </div>
+                            <div>
+                                <strong>Reg No:</strong>
+                                <span>178885775</span>
+                            </div>
+                        </div>
+                        <div class="col-3 text-center">
+                            <img src="/custom_document_reports/static/src/img/company_award.png" style="max-width: 50px; max-height: 50px;" alt="Middle Image" />
+                        </div>
+                        <div class="col-3 text-end">
+                            <!-- Dynamically change the title based on the report type -->
+                            <h3>
+                                <t t-if="o._name == 'sale.order'">Sales Quotation</t>
+                                <t t-if="o._name == 'account.move' and o.move_type == 'out_invoice'">Sales Invoice</t>
+                                <t t-if="o._name == 'account.move' and o.move_type == 'out_refund'">Credit Note</t>
+                                <!-- Add other conditions if necessary -->
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>
