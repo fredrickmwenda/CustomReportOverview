@@ -1,2 +1,2 @@
 from . import report_customization
-from . import res_partner_extension  # Add this line
+from . import account_move_line

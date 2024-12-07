@@ -1,35 +1,30 @@
-<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-	<template id="account_quotation_document" inherit_id="sale.report_saleorder_document">
-		<!-- Modify the t-call to use the custom external layout -->
-		<xpath expr="//t[@t-call='web.external_layout']" position="attributes">
-			<attribute name="t-call">
-				custom_document_reports.custom_external_layout
-			</attribute>
-		</xpath>
-		<!-- Set the company variable for the custom layout -->
-		<xpath expr="//t[@t-call='custom_document_reports.custom_external_layout']" position="inside">
-			<t t-set="company" t-value="o.company_id" />
-		</xpath>
-	  <!-- Custom Customer Information Layout -->
-        <xpath expr="//t[@set='forced_vat']" position="after">
-            <div class="row customer-info">
+    <template id="account_quotation_document" inherit_id="sale.report_saleorder_document">
+        <!-- Change external layout -->
+        <xpath expr="//t[@t-call='web.external_layout']" position="attributes">
+            <attribute name="t-call">custom_reports.custom_external_layout</attribute>
+        </xpath>
+
+        <!-- Pass company details to the custom layout -->
+        <xpath expr="//t[@t-call='custom_reports.custom_external_layout']" position="inside">
+            <t t-set="company" t-value="o.company_id" />
+        </xpath>
+
+        <!-- Insert custom content inside the page -->
+        <xpath expr="//div[@class='page']" position="inside">
+            <div class="row">
                 <div class="col-4">
                     <strong>Customer Name:</strong>
-                    <span t-field="o.partner_id.name" />
-                    <br />
+                    <span t-field="o.partner_id.name" /><br />
                     <strong>Telephone:</strong>
-                    <span t-field="o.partner_id.phone" />
-                    <br />
+                    <span t-field="o.partner_id.phone" /><br />
                     <strong>Location:</strong>
                     <span>
-                        <t t-esc="o.partner_id.city"/> 
-                        <t t-if="o.partner_id.state_id">, <t t-esc='o.partner_id.state_id.name'/></t></t>
-                    </span>
-                    <br />
+                        <t t-esc="o.partner_id.city" />
+                        <t t-if="o.partner_id.state_id">, <t t-esc="o.partner_id.state_id.name" /></t>
+                    </span><br />
                     <strong>KRA PIN:</strong>
-                    <span t-field="o.partner_id.kra_pin" />
-                    <br />
+                    <span t-if="o.partner_id.vat"><t t-field="o.partner_id.vat" /></span><br />
                     <strong>Mobile No:</strong>
                     <span t-field="o.partner_id.mobile" />
                 </div>
@@ -38,17 +33,16 @@
                 </div>
                 <div class="col-4 text-end">
                     <h3 t-field="o.validity_date" style="margin-bottom:3px" />
-                    <span t-field="o.user_id.name"/> <!-- Person who prepared the quotation -->
+                    <span t-field="o.user_id.name" />
                     <span t-field="o.name" />
                 </div>
             </div>
         </xpath>
 
-
-        <xpath expr="//t[@set='address']" position="remove"/>
-		<xpath expr="//t[@set='information_block']" position="remove"/>
-		
-		<xpath expr="//h2" position="remove"/>
-        <xpath expr="//div[@id='informations']" position="remove"/>
-	</template>
+        <!-- Remove unwanted elements -->
+        <!-- <xpath expr="//t[@set='address']" position="remove" />
+        <xpath expr="//t[@set='information_block']" position="remove" />
+        <xpath expr="//h2" position="remove" />
+        <xpath expr="//div[@id='informations']" position="remove" /> -->
+    </template>
 </odoo>

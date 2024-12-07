@@ -1,97 +1,131 @@
-<template id="account_invoicedocument" inherit_id="account.report_invoice_document">
-    <!-- Modify the t-call to use the custom external layout -->
-    <xpath expr="//t[@t-call='web.external_layout']" position="attributes">
-        <attribute name="t-call">custom_document_reports.custom_external_layout</attribute>
-    </xpath>
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="account_invoicedocument" inherit_id="account.report_invoice_document">
+        <!-- Replace the entire external layout call -->
+        <xpath expr="//t[@t-call='web.external_layout']" position="replace">
+            <t t-call="custom_reports.custom_external_layout">
+                <t t-set="company" t-value="o.company_id"/>
+                
+                <!-- Customer Information Section -->
+                <div class="page">
+                    <div class="row">
+                        <div class="col-5">
+                            <strong>Customer Name:</strong> <span t-field="o.partner_id.name"/>
+                            <br/>
+                            <strong>Telephone:</strong> <span t-field="o.partner_id.phone"/>
+                            <br/>
+                            <strong>Location:</strong>
+                            <span>
+                                <t t-esc="o.partner_id.city"/> 
+                                <t t-if="o.partner_id.state_id">, <t t-esc='o.partner_id.state_id.name'/></t>
+                            </span>
+                            <br/>
+                            <strong>KRA PIN:</strong>
+                            <span t-if="o.partner_id.vat">
+                                <t t-esc="o.partner_id.vat"/>
+                            </span>
+                            <span t-else=""></span>
+                            <br/>
+                            <strong>Mobile No:</strong> <span t-field="o.partner_id.mobile"/>
+                        </div>
+                        <div class="col-3 text-center">
+                            <strong>Self Collection</strong>
+                        </div>
+                        <div class="col-4 text-end">
+                            <h4 t-field="o.invoice_date_due" style="margin-bottom:3px" />
+                            <span t-field="o.user_id.name"/> 
+                            <span t-field="o.name" />
+                        </div>
+                    </div>
 
-    <!-- Set the company variable for the custom layout -->
-    <xpath expr="//t[@t-call='custom_document_reports.custom_external_layout']" position="inside">
-        <t t-set="company" t-value="o.company_id"/>
-    </xpath>
-
-    <!-- Replace the entire Partner section -->
-    <xpath expr="//div[contains(@class, 'row')]" position="inside">
-        <div class="row customer-info">
-            <t t-if="o.partner_shipping_id and (o.partner_shipping_id != o.partner_id)">
-                <div class="col-4">
-                    <strong>Customer Name:</strong> <span t-field="o.partner_id.name"/>
-                    <br/>
-                    <strong>Telephone:</strong> <span t-field="o.partner_id.phone"/>
-                    <br/>
-                    <strong>Location:</strong>
-                    <span>
-                        <t t-esc="o.partner_id.city"/> 
-                        <t t-if="o.partner_id.state_id">, <t t-esc='o.partner_id.state_id.name'/></t></t>
-                    </span>
-                    <br/>
-                    <strong>KRA PIN:</strong> <span t-field="o.partner_id.kra_pin"/> <!-- Assuming kra_pin is a field -->
-                    <br/>
-                    <strong>Mobile No:</strong> <span t-field="o.partner_id.mobile"/> <!-- Assuming mobile is a field -->
-                </div>
-                <div class="col-4 text-center">
-                    <strong>Self Collection</strong>
-                </div>
-                <div class="col-4 text-end">					
-                    <h3 t-field="o.invoice_date_due" style="margin-bottom:3px" />
-                    <span t-field="o.user_id.name"/> <!-- Person who prepared the quotation -->
-                    <span t-field="o.name" />
+                    <!-- Original Invoice Lines -->
+                    <t t-set="o" t-value="o.with_context(lang=lang)"/>
+                    <div class="oe_structure"/>
+                    <div class="row">
+                        <div class="col-12">
+                            <t t-set="current_invoice" t-value="o"/>
+                               <!-- Invoice Lines Table -->
+             
+                        
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Description</th>
+                                        <th>Colour</th>
+                                        <th>Meters</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Discount (%)</th>
+                                        <th>VAT (%)</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="o.invoice_line_ids" t-as="line">
+                                        <td>
+                                            <span t-field="line.name"/>
+                                        </td>
+                                        <td>
+                                            <!-- Customize these fields based on your specific requirements -->
+                                            <span t-field="line.color" t-if="line.color"/>
+                                            <span t-else="">-</span>
+                                        </td>
+                                        <td>
+                                            <span t-field="line.x_meters" t-if="line.x_meters"/>
+                                            <span t-else="">-</span>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-field="line.quantity"/>
+                                            <!-- <span t-field="line.product_uom_id" groups="uom.group_uom"/> -->
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-field="line.price_unit"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:.2f}'.format(line.discount) if line.discount else '0.00'"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="', '.join(['{:.2f}'.format(tax.amount) for tax in line.tax_ids])"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-field="line.price_total"/>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="7" class="text-right">
+                                            <strong>Subtotal</strong>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-field="o.amount_untaxed"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="7" class="text-right">
+                                            <strong>Tax</strong>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-field="o.amount_tax"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="7" class="text-right">
+                                            <strong>Total</strong>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-field="o.amount_total"/>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        
+                   
+                        </div>
+                    </div>
+                    <div class="oe_structure"/>
                 </div>
             </t>
-            <t t-elif="o.partner_shipping_id and (o.partner_shipping_id == o.partner_id)">
-                <div class="col-4">
-                    <strong>Customer Name:</strong> <span t-field="o.partner_id.name"/>
-                    <br/>
-                    <strong>Telephone:</strong> <span t-field="o.partner_id.phone"/>
-                    <br/>
-                    <strong>Location:</strong>
-                    <span>
-                        <t t-esc="o.partner_id.city"/> 
-                        <t t-if="o.partner_id.state_id">, <t t-esc='o.partner_id.state_id.name'/></t></t>
-                    </span>
-                    <br/>
-                    <strong>KRA PIN:</strong> <span t-field="o.partner_id.kra_pin"/> <!-- Assuming kra_pin is a field -->
-                    <br/>
-                    <strong>Mobile No:</strong> <span t-field="o.partner_id.mobile"/> <!-- Assuming mobile is a field -->
-                </div>
-                <div class="col-4 text-center">
-                    <strong>Self Collection</strong>
-                </div>
-                <div class="col-4 text-end">					
-                    <h3 t-field="o.invoice_date_due" style="margin-bottom:3px" />
-                    <span t-field="o.user_id.name"/> <!-- Person who prepared the quotation -->
-                    <span t-field="o.name" />
-                </div>
-            </t>
-            <t t-else="">
-                <div class="col-4">
-                    <strong>Customer Name:</strong> <span t-field="o.partner_id.name"/>
-                    <br/>
-                    <strong>Telephone:</strong> <span t-field="o.partner_id.phone"/>
-                    <br/>
-                    <strong>Location:</strong>
-                    <span>
-                        <t t-esc="o.partner_id.city"/> 
-                        <t t-if="o.partner_id.state_id">, <t t-esc='o.partner_id.state_id.name'/></t></t>
-                    </span>
-                    <br/>
-                    <strong>KRA PIN:</strong> <span t-field="o.partner_id.kra_pin"/> <!-- Assuming kra_pin is a field -->
-                    <br/>
-                    <strong>Mobile No:</strong> <span t-field="o.partner_id.mobile"/> <!-- Assuming mobile is a field -->
-                </div>
-                <div class="col-4 text-center">
-                    <strong>Self Collection</strong>
-                </div>
-                < <div class="col-4 text-end">					
-                    <h3 t-field="o.invoice_date_due" style="margin-bottom:3px" />
-                    <span t-field="o.user_id.name"/> <!-- Person who prepared the quotation -->
-                    <span t-field="o.name" />
-                </div>
-            </t>
-        </div>
-    </xpath>
-
-    <!-- Remove the entire section for the invoice header and information -->
-    <xpath expr="//h2" position="remove"/>
-    <xpath expr="//div[@id='informations']" position="remove"/>
-    <!-- Additional sections can be added here as needed -->
-</template>
+        </xpath>
+    </template>
+</odoo>
